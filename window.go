@@ -20,6 +20,9 @@ func (w window) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if sz, ok := msg.(tea.WindowSizeMsg); ok {
 		w.width = sz.Width
 		w.height = sz.Height
+		if sz.Width > 2 && sz.Height > 2 {
+			msg = tea.WindowSizeMsg{Width: sz.Width - 2, Height: sz.Height - 2}
+		}
 	}
 	model, cmd := w.model.Update(msg)
 	w.model = model

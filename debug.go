@@ -29,10 +29,8 @@ func (d debug) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		d.i = (d.i + 1) % len(d.msgs)
 	}
 
-	if key, ok := msg.(tea.KeyMsg); ok {
-		if key.String() == "`" {
-			d.show = !d.show
-		}
+	if isKey(msg, "`") {
+		d.show = !d.show
 	}
 
 	model, cmd := d.model.Update(msg)
