@@ -5,5 +5,7 @@ import (
 )
 
 func main() {
-	tea.NewProgram(mainMenu{}).Start()
+	var program tea.Model = mainMenu{}
+	program = debug{model: program}
+	tea.NewProgram(program).Start()
 }
