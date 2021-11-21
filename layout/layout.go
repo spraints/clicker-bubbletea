@@ -76,6 +76,10 @@ type Target struct {
 	Points, Cost, Rate int
 }
 
+type Coords struct {
+	Row, Col int
+}
+
 func (t Target) Line1() []rune {
 	if t.Cost == 0 {
 		return []rune("FREE")
@@ -148,4 +152,23 @@ func (l Layout) hide(e extent, t Target) {
 			l.field[i][j] = ' '
 		}
 	}
+}
+
+func (l Layout) GetTarget(coords Coords) (Target, bool) {
+	for i, e := range l.extents {
+		if coords.Row < e.top {
+			continue
+		}
+		if coords.Row > e.bottom {
+			continue
+		}
+		if coords.Col < e.left {
+			continue
+		}
+		if coords.Col > e.right {
+			continue
+		}
+		return l.targets[i], true
+	}
+	return Target{}, false
 }

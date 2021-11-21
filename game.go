@@ -18,11 +18,14 @@ type game struct {
 	rate   int
 
 	start time.Time
+
+	mouseDown       bool
+	mouseDownTarget layout.Target
 }
 
 func (g game) Init() tea.Cmd {
 	start := time.Now()
-	layout := layout.New(g.width, g.height, targets)
+	layout := layout.New(g.width, g.height-2, targets)
 	return tea.Batch(
 		func() tea.Msg { return start },
 		func() tea.Msg { return layout },
@@ -64,27 +67,59 @@ func (g game) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		g.width = msg.Width
 		g.height = msg.Height
-		g.layout = layout.New(msg.Width-2, msg.Height, targets)
+		g.layout = layout.New(msg.Width, msg.Height-2, targets)
 	case time.Time:
 		g.start = msg
 	case layout.Layout:
 		g.layout = msg
 	case tickMsg:
 		g.points += g.rate
-		// todo: case tea.MouseMsg, inspect {X, Y, Type}
+	case tea.MouseMsg:
+		switch msg.Type {
+		case tea.MouseLeft:
+			if !g.mouseDown {
+				g.mouseDown = true
+				t, ok := g.layout.GetTarget(c(msg))
+				if ok {
+					g.mouseDownTarget = t
+				} else {
+					g.mouseDownTarget = layout.Target{}
+				}
+			}
+		case tea.MouseRelease:
+			if g.mouseDown {
+				t, ok := g.layout.GetTarget(c(msg))
+				if ok && t.Key == g.mouseDownTarget.Key {
+					g = g.click(t)
+				}
+			}
+			g.mouseDown = false
+		}
 	case tea.KeyMsg:
 		if clicked, ok := targetIndex[msg.String()]; ok {
-			if clicked.Cost <= g.points {
-				g.points += clicked.Points
-				g.points -= clicked.Cost
-				g.rate += clicked.Rate
-			}
+			g = g.click(clicked)
 		}
 	}
 	if g.points > winningScore {
 		return switchModel(win{time.Since(g.start)})
 	}
 	return g, nil
+}
+
+func c(msg tea.MouseMsg) layout.Coords {
+	return layout.Coords{
+		Row: msg.Y - 2,
+		Col: msg.X,
+	}
+}
+
+func (g game) click(t layout.Target) game {
+	if t.Cost <= g.points {
+		g.points += t.Points
+		g.points -= t.Cost
+		g.rate += t.Rate
+	}
+	return g
 }
 
 func (g game) View() string {

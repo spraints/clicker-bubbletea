@@ -7,7 +7,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-const debugHistorySize = 3
+const debugHistorySize = 10
 
 type debug struct {
 	show bool
