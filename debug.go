@@ -11,7 +11,7 @@ const debugHistorySize = 10
 
 type debug struct {
 	show bool
-	i    int
+	next int
 	msgs []tea.Msg
 
 	model tea.Model
@@ -22,12 +22,12 @@ func (d debug) Init() tea.Cmd {
 }
 
 func (d debug) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if len(d.msgs) < debugHistorySize {
+	if d.next < debugHistorySize {
 		d.msgs = append(d.msgs, msg)
 	} else {
-		d.msgs[d.i] = msg
-		d.i = (d.i + 1) % len(d.msgs)
+		d.msgs[d.next%debugHistorySize] = msg
 	}
+	d.next++
 
 	if isKey(msg, "`") {
 		d.show = !d.show
@@ -44,14 +44,12 @@ func (d debug) View() string {
 	}
 
 	var res strings.Builder
-	for i := 0; i < debugHistorySize; i++ {
-		p := (d.i - i - 1 + debugHistorySize) % debugHistorySize
-		if p < len(d.msgs) {
-			msg := d.msgs[p]
-			fmt.Fprintf(&res, "[%d] %T %v\n%#v\n", i, msg, msg, msg)
-		} else {
-			fmt.Fprintf(&res, "\n\n")
+	for i := d.next - debugHistorySize; i < d.next; i++ {
+		if i < 0 {
+			continue
 		}
+		msg := d.msgs[i%debugHistorySize]
+		fmt.Fprintf(&res, "[%d] %T %v\n%#v\n", i, msg, msg, msg)
 	}
 	return res.String()
 }
