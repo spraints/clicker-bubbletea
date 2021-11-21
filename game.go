@@ -6,50 +6,55 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/spraints/clicker-bubbletea/layout"
 )
 
 type game struct {
+	height int
+	width  int
+	layout layout.Layout
+
 	points int
 	rate   int
-	width  int
-	start  time.Time
+
+	start time.Time
 }
 
 func (g game) Init() tea.Cmd {
-	return func() tea.Msg { return time.Now() }
+	start := time.Now()
+	layout := layout.New(g.width, g.height, targets)
+	return tea.Batch(
+		func() tea.Msg { return start },
+		func() tea.Msg { return layout },
+	)
 }
 
-type target struct {
-	key                string
-	points, cost, rate int
-}
-
-var targets = []target{
+var targets = []layout.Target{
 	{
-		key:    "a",
-		points: 1,
+		Key:    "a",
+		Points: 1,
 	},
 	{
-		key:  "s",
-		cost: 50,
-		rate: 1,
+		Key:  "s",
+		Cost: 50,
+		Rate: 1,
 	},
 	{
-		key:  "d",
-		cost: 150,
-		rate: 10,
+		Key:  "d",
+		Cost: 150,
+		Rate: 10,
 	},
 	{
-		key:  "f",
-		cost: 10000,
-		rate: 1000,
+		Key:  "f",
+		Cost: 10000,
+		Rate: 1000,
 	},
 }
 
-var targetIndex = func() map[string]target {
-	res := make(map[string]target, len(targets))
+var targetIndex = func() map[string]layout.Target {
+	res := make(map[string]layout.Target, len(targets))
 	for _, t := range targets {
-		res[t.key] = t
+		res[t.Key] = t
 	}
 	return res
 }()
@@ -58,17 +63,21 @@ func (g game) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		g.width = msg.Width
+		g.height = msg.Height
+		g.layout = layout.New(msg.Width-2, msg.Height, targets)
 	case time.Time:
 		g.start = msg
+	case layout.Layout:
+		g.layout = msg
 	case tickMsg:
 		g.points += g.rate
 		// todo: case tea.MouseMsg, inspect {X, Y, Type}
 	case tea.KeyMsg:
 		if clicked, ok := targetIndex[msg.String()]; ok {
-			if clicked.cost <= g.points {
-				g.points += clicked.points
-				g.points -= clicked.cost
-				g.rate += clicked.rate
+			if clicked.Cost <= g.points {
+				g.points += clicked.Points
+				g.points -= clicked.Cost
+				g.rate += clicked.Rate
 			}
 		}
 	}
@@ -80,16 +89,9 @@ func (g game) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (g game) View() string {
 	var res strings.Builder
+	res.Grow(g.height * g.width)
 	seconds := time.Since(g.start) / time.Second
-	fmt.Fprintf(&res, "points: %8d / rate: %8d / elapsed: %02d:%02d\n", g.points, g.rate, seconds/60, seconds%60)
-	for _, target := range targets {
-		fmt.Fprintf(&res, "\n+-+\n|")
-		if g.points < target.cost {
-			res.WriteString(" ")
-		} else {
-			res.WriteString(target.key)
-		}
-		fmt.Fprintf(&res, "|\n+-+\n")
-	}
+	fmt.Fprintf(&res, "points: %8d / rate: %8d / elapsed: %02d:%02d\n\n", g.points, g.rate, seconds/60, seconds%60)
+	g.layout.Render(&res, g.points)
 	return res.String()
 }

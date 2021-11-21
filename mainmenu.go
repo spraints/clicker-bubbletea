@@ -6,16 +6,24 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type mainMenu struct{}
+type mainMenu struct {
+	size tea.WindowSizeMsg
+}
 
 func (m mainMenu) Init() tea.Cmd {
 	return nil
 }
 
 func (m mainMenu) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if sz, ok := msg.(tea.WindowSizeMsg); ok {
+		m.size = sz
+	}
 	if isKey(msg, "enter") {
-		log.Print("starting game!")
-		return switchModel(game{})
+		log.Printf("starting game! (window size = %v)", m.size)
+		return switchModel(game{
+			width:  m.size.Width,
+			height: m.size.Height,
+		})
 	}
 	return m, nil
 }

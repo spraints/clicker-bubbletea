@@ -35,8 +35,6 @@ func (w window) View() string {
 		return ""
 	}
 
-	log.Printf("draw in %dx%d", w.width, w.height)
-
 	const (
 		// https://en.wikipedia.org/wiki/Box-drawing_character
 		topLeft     = 0x250c
@@ -53,7 +51,6 @@ func (w window) View() string {
 
 	cw := w.width - 2
 	ch := w.height - 2
-	log.Printf("content: %dx%d", cw, ch)
 
 	var res strings.Builder
 	res.Grow(w.width*w.height + 4)
