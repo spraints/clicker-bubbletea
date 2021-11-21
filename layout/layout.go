@@ -43,7 +43,7 @@ func New(width, height int, targets []Target) Layout {
 	}
 
 	field := make([][]rune, height)
-	for i := 0; i < height; i++ {
+	for i := 0; i < len(field); i++ {
 		field[i] = make([]rune, width)
 		fill(field[i], ' ')
 	}
@@ -116,9 +116,11 @@ func (l Layout) Render(b *strings.Builder, points int) {
 		}
 	}
 
-	for _, line := range l.field {
+	for i, line := range l.field {
+		if i != 0 {
+			b.WriteRune('\n')
+		}
 		b.WriteString(string(line))
-		b.WriteRune('\n')
 	}
 }
 
