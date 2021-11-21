@@ -3,6 +3,7 @@ package layout
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"strings"
 )
 
@@ -30,10 +31,16 @@ func New(width, height int, targets []Target) Layout {
 		return Layout{targets: targets}
 	}
 
+	positions := make([]int, gridWidth*gridHeight)
+	for i := 0; i < len(positions); i++ {
+		positions[i] = i
+	}
+	rand.Shuffle(len(positions), func(i, j int) { positions[i], positions[j] = positions[j], positions[i] })
+
 	extents := make([]extent, 0, len(targets))
 	for i := range targets {
-		col := i % gridWidth
-		row := i / gridWidth
+		row := positions[i] / gridWidth
+		col := positions[i] % gridWidth
 		extents = append(extents, extent{
 			top:    row * (buttonHeight + 1),
 			left:   col * (buttonWidth + 1),
