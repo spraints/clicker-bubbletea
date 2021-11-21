@@ -33,6 +33,6 @@ func (m mainMenu) View() string {
 
 Press <enter> to start, <q> to quit.
 
-Type the letters you see to get some points!
+Click the buttons to get points!
 `)
 }
