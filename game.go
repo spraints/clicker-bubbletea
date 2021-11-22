@@ -127,6 +127,6 @@ func (g game) View() string {
 	res.Grow(g.height * g.width)
 	seconds := time.Since(g.start) / time.Second
 	fmt.Fprintf(&res, "points: %8d / rate: %8d / elapsed: %02d:%02d\n\n", g.points, g.rate, seconds/60, seconds%60)
-	g.layout.Render(&res, g.points)
+	g.layout.Render(&res, g.points, g.mouseDown, g.mouseDownTarget)
 	return res.String()
 }

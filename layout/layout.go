@@ -105,7 +105,7 @@ type extent struct {
 	top, left, right, bottom int
 }
 
-func (l Layout) Render(b *strings.Builder, points int) {
+func (l Layout) Render(b *strings.Builder, points int, mouseDown bool, mouseDownTarget Target) {
 	if len(l.field) == 0 {
 		for _, target := range l.targets {
 			if target.Cost <= points {
@@ -117,7 +117,7 @@ func (l Layout) Render(b *strings.Builder, points int) {
 
 	for i, target := range l.targets {
 		if target.Cost <= points {
-			l.show(l.extents[i], target)
+			l.show(l.extents[i], target, mouseDown && mouseDownTarget.Key == target.Key)
 		} else {
 			l.hide(l.extents[i], target)
 		}
@@ -131,14 +131,18 @@ func (l Layout) Render(b *strings.Builder, points int) {
 	}
 }
 
-func (l Layout) show(e extent, t Target) {
+func (l Layout) show(e extent, t Target, mouseDown bool) {
+	horiz := '-'
+	if mouseDown {
+		horiz = '='
+	}
 	l.field[e.top][e.left] = '+'
 	l.field[e.bottom][e.left] = '+'
 	l.field[e.top][e.right] = '+'
 	l.field[e.bottom][e.right] = '+'
 	for i := 1; i < buttonWidth-1; i++ {
-		l.field[e.top][e.left+i] = '-'
-		l.field[e.bottom][e.left+i] = '-'
+		l.field[e.top][e.left+i] = horiz
+		l.field[e.bottom][e.left+i] = horiz
 	}
 
 	l.showLine(l.field[e.top+1], e.left, t.Line1())
